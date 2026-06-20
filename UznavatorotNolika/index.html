@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UZNAVATOR NOLIKA — программа для аллергологов</title>
+    <meta name="description" content="UZNAVATOR NOLIKA — сервис для людей с пыльцевой аллергией: маршруты, календарь цветения растений и рекомендации по озеленению участка.">
+    <style>
+        :root {
+            --bg: #F7F9F6;
+            --bg-card: #FFFFFF;
+            --ink: #1F3D2E;
+            --ink-soft: #4A5F52;
+            --amber: #D98E3E;
+            --amber-soft: #F3DDB8;
+            --sky: #5B8AA6;
+            --sky-soft: #DCEAF1;
+            --line: #DDE5DE;
+            --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+            --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img.logo {
+            display: block;
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        header.top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 28px clamp(20px, 6vw, 64px);
+            border-bottom: 1px solid var(--line);
+            background: var(--bg-card);
+        }
+
+        header.top .brand-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.02em;
+        }
+
+        header.top .brand-sub {
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 clamp(20px, 6vw, 64px) 80px;
+        }
+
+        .hero {
+            padding: 56px 0 32px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--amber);
+            background: var(--amber-soft);
+            padding: 6px 12px;
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            line-height: 1.2;
+            margin: 0 0 18px;
+            font-weight: 800;
+        }
+
+        .lead {
+            font-size: 1.05rem;
+            color: var(--ink-soft);
+            max-width: 70ch;
+        }
+
+        section {
+            margin-top: 56px;
+        }
+
+        h2.section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        h2.section-title .num {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--amber);
+        }
+
+        .section-note {
+            color: var(--ink-soft);
+            font-size: 0.95rem;
+            margin: 0 0 24px;
+            max-width: 70ch;
+        }
+
+        .transport-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .transport-card {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .transport-card .icon { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+        .transport-card .label { font-size: 0.85rem; color: var(--ink-soft); }
+
+        .resource-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .resource-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+
+        .resource-link:hover {
+            border-color: var(--sky);
+            transform: translateX(2px);
+        }
+
+        .resource-link:focus-visible {
+            outline: 2px solid var(--sky);
+            outline-offset: 2px;
+        }
+
+        .resource-link .tag {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--sky);
+            background: var(--sky-soft);
+            padding: 4px 8px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .resource-link .url {
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+            word-break: break-all;
+        }
+
+        /* Calendar table */
+        .calendar-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--bg-card);
+        }
+
+        table.calendar {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 720px;
+            font-size: 0.88rem;
+        }
+
+        table.calendar caption {
+            text-align: left;
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--ink-soft);
+            padding: 14px 16px 0;
+        }
+
+        table.calendar th, table.calendar td {
+            border-bottom: 1px solid var(--line);
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        table.calendar thead th {
+            font-family: var(--mono);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--ink-soft);
+            background: #F0F4F1;
+        }
+
+        table.calendar td.plant-name {
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            padding-left: 16px;
+        }
+
+        .bloom {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+        }
+
+        .bloom-none { background: transparent; }
+        .bloom-low { background: #F3DDB8; }
+        .bloom-mid { background: #E8B86D; }
+        .bloom-peak { background: var(--amber); }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding: 14px 16px 18px;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+
+        /* Pollen scale table */
+        table.scale {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.92rem;
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        table.scale th, table.scale td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        table.scale tr:last-child td { border-bottom: none; }
+
+        table.scale thead th {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--ink-soft);
+            background: #F0F4F1;
+        }
+
+        .scale-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .dot-low { background: #7FB88A; }
+        .dot-mid { background: #E8C257; }
+        .dot-high { background: var(--amber); }
+        .dot-extreme { background: #C0432B; }
+
+        footer.bottom {
+            border-top: 1px solid var(--line);
+            margin-top: 64px;
+            padding: 32px clamp(20px, 6vw, 64px);
+            color: var(--ink-soft);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="top">
+    <img class="logo" src="logo.png" alt="Логотип UZNAVATOR NOLIKA" width="64" height="64">
+    <div>
+        <div class="brand-name">UZNAVATOR NOLIKA</div>
+        <div class="brand-sub">by Egor V.</div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <span class="eyebrow">Программа для аллергологов</span>
+        <h1>Для кого и зачем создана эта программа</h1>
+        <p class="lead">
+            UZNAVATOR NOLIKA Это программа которая помогает людям с аллергией понять хороша ли погода что бы пойти погулять, какие растения советуют аллерголог для посадки на своём участке и многое многое другое но не всё есть в нашей программе!
+        </p>
+    </section>
+
+    <section>
+        <h2 class="section-title"><span class="num">01</span> Как добраться</h2>
+        <p class="section-note">Сравните варианты маршрута и выберите тот, что снижает контакт с пыльцой в сезон обострений.</p>
+        <div class="transport-grid">
+            <div class="transport-card"><span class="icon">🚶‍♂️</span><span class="label">Пешком</span></div>
+            <div class="transport-card"><span class="icon">🚌</span><span class="label">Автобус</span></div>
+            <div class="transport-card"><span class="icon">🚋</span><span class="label">Трамвай</span></div>
+            <div class="transport-card"><span class="icon">🚇</span><span class="label">Метро</span></div>
+            <div class="transport-card"><span class="icon">🚗</span><span class="label">Машина</span></div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title"><span class="num">02</span> Подробнее о программе</h2>
+        <p class="section-note">Полное описание — в файле <code>Readme.md</code> репозитория или по ссылке ниже.</p>
+        <div class="resource-list">
+            <a class="resource-link" href="https://docs.google.com/document/d/1hrOBL3CJlpcoO-LMwrRxo82KfCXlBqUd-IeZJ4btT3o/edit?usp=sharing" target="_blank" rel="noopener noreferrer">
+                <span class="tag">Doc</span>
+                <span class="url">Подробное описание программы — Google Docs</span>
+            </a>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title"><span class="num">03</span> Календарь цветения растений</h2>
+        <p class="section-note">Ориентировочные периоды и интенсивность пыления для средней полосы. Точные сроки зависят от региона и погодных условий конкретного года.</p>
+
+        <div class="calendar-wrap">
+            <table class="calendar">
+                <caption>Сезон пыления, март — август</caption>
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding-left:16px;">Растение</th>
+                        <th>Март</th>
+                        <th>Апрель</th>
+                        <th>Май</th>
+                        <th>Июнь</th>
+                        <th>Июль</th>
+                        <th>Август</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="plant-name">Ольха</td>
+                        <td><span class="bloom bloom-peak"></span></td><td><span class="bloom bloom-mid"></span></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Лещина</td>
+                        <td><span class="bloom bloom-peak"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Берёза</td>
+                        <td></td><td><span class="bloom bloom-peak"></span></td><td><span class="bloom bloom-mid"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Ива</td>
+                        <td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Тополь</td>
+                        <td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-peak"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Дуб</td>
+                        <td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-mid"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Вяз</td>
+                        <td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Ясень</td>
+                        <td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Клён</td>
+                        <td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Сосна</td>
+                        <td></td><td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Ель</td>
+                        <td></td><td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-low"></span></td><td></td><td></td></tr>
+                    <tr><td class="plant-name">Злаки</td>
+                        <td></td><td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-peak"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td></tr>
+                    <tr><td class="plant-name">Маревые</td>
+                        <td></td><td></td><td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-mid"></span></td></tr>
+                    <tr><td class="plant-name">Полынь</td>
+                        <td></td><td></td><td></td><td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-peak"></span></td></tr>
+                    <tr><td class="plant-name">Подорожник</td>
+                        <td></td><td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td></tr>
+                    <tr><td class="plant-name">Крапива</td>
+                        <td></td><td></td><td><span class="bloom bloom-low"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td></tr>
+                    <tr><td class="plant-name">Щавель</td>
+                        <td></td><td></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-mid"></span></td><td><span class="bloom bloom-low"></span></td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="legend">
+                <span class="legend-item"><span class="bloom bloom-low" style="width:14px;height:14px;"></span> Слабое пыление</span>
+                <span class="legend-item"><span class="bloom bloom-mid" style="width:14px;height:14px;"></span> Умеренное</span>
+                <span class="legend-item"><span class="bloom bloom-peak" style="width:14px;height:14px;"></span> Пик пыления</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title"><span class="num">04</span> Шкала концентрации пыльцы</h2>
+        <p class="section-note">Количество пыльцевых зёрен на м³ воздуха и соответствующий уровень риска.</p>
+        <table class="scale">
+            <thead>
+                <tr>
+                    <th>Зёрен / м³</th>
+                    <th>Уровень</th>
+                    <th>Рекомендация</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1–10</td>
+                    <td><span class="scale-dot dot-low"></span>Низкая</td>
+                    <td>Можно гулять без ограничений</td>
+                </tr>
+                <tr>
+                    <td>11–50</td>
+                    <td><span class="scale-dot dot-mid"></span>Средняя</td>
+                    <td>Желательны антигистаминные при выходе</td>
+                </tr>
+                <tr>
+                    <td>51–500</td>
+                    <td><span class="scale-dot dot-high"></span>Высокая</td>
+                    <td>Сократить время на улице, носить маску</td>
+                </tr>
+                <tr>
+                    <td>500+</td>
+                    <td><span class="scale-dot dot-extreme"></span>Очень высокая</td>
+                    <td>По возможности оставаться дома</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2 class="section-title"><span class="num">05</span> Наши соцсети</h2>
+        <div class="resource-list">
+            <a class="resource-link" href="https://t.me/tralaleroralalastudio" target="_blank" rel="noopener noreferrer">
+                <span class="tag">Telegram</span>
+                <span class="url">@tralaleroralalastudio</span>
+            </a>
+            <a class="resource-link" href="https://chat.whatsapp.com/JvilOwNj1vU6dMOBx54PJg" target="_blank" rel="noopener noreferrer">
+                <span class="tag">WhatsApp</span>
+                <span class="url">Сообщество</span>
+            </a>
+            <a class="resource-link" href="https://github.com/ApplePinepleGold" target="_blank" rel="noopener noreferrer">
+                <span class="tag">GitHub</span>
+                <span class="url">ApplePinepleGold</span>
+            </a>
+        </div>
+    </section>
+</main>
+
+<footer class="bottom">
+    UZNAVATOR NOLIKA — некоммерческий проект для людей с пыльцевой аллергией.
+</footer>
+
+</body>
+</html>
